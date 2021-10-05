@@ -1,6 +1,6 @@
 import React, { FC } from "react";
 import styled from "styled-components";
-import { Moment } from "moment";
+import moment, { Moment } from "moment";
 
 interface RowProps {
   justifyContent: string;
@@ -17,7 +17,7 @@ interface CellWrapperProps {
 const GridWrapper = styled.div`
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  grid-template-columns: repeat(6, 1f);
+  grid-template-rows: repeat(6, 1f);
   grid-gap: 1px;
   background-color: #484848;
 `;
@@ -42,17 +42,34 @@ const DayWrapper = styled.div`
   justify-content: center;
 `;
 
+const CurrentDay = styled("div")`
+  height: 100%;
+  width: 100%;
+  background: #f00;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
 const CalendarGrid: FC<CalendarGripProps> = ({ startDay }) => {
   const totalDays = 42;
   const day = startDay.clone().subtract(1, "day");
   const daysMap = [...Array(totalDays)].map(() => day.add(1, "day").clone());
   const isWeekend = (day: Moment) => day.day() === 6 || day.day() === 0;
+  const isCurrentDay = (day: Moment) => moment().isSame(day, "day");
   return (
     <GridWrapper>
       {daysMap.map((dayItem, index) => (
-        <CellWrapper key={index} isWeekend={isWeekend(dayItem)}>
+        <CellWrapper key={dayItem.unix()} isWeekend={isWeekend(dayItem)}>
           <RowInCell justifyContent={"flex-end"}>
-            <DayWrapper>{dayItem.format("D")}</DayWrapper>
+            <DayWrapper>
+              {isCurrentDay(dayItem) ? (
+                <CurrentDay>{dayItem.format("D")}</CurrentDay>
+              ) : (
+                dayItem.format("D")
+              )}
+            </DayWrapper>
           </RowInCell>
         </CellWrapper>
       ))}
