@@ -1,9 +1,10 @@
 import React, { FC } from "react";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import moment, { Moment } from "moment";
 
-interface RowProps {
+interface RowInCellProps {
   justifyContent: string;
+  paddingRight?: number;
 }
 
 interface CalendarGripProps {
@@ -11,27 +12,41 @@ interface CalendarGripProps {
 }
 
 interface CellWrapperProps {
-  isWeekend: boolean;
+  isWeekend?: boolean;
+  isHeader?: boolean;
 }
 
-const GridWrapper = styled.div`
+interface GridWrapperProps {
+  isHeader?: boolean;
+}
+
+const GridWrapper = styled.div<GridWrapperProps>`
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  grid-template-rows: repeat(6, 1f);
   grid-gap: 1px;
-  background-color: #484848;
+  background-color: ${(props) => (props.isHeader ? "#1e1f21" : "#4D4D4D")};
+  ${(props) =>
+    props.isHeader &&
+    css`
+      border-bottom: 1px solid #4d4c4d;
+    `}
 `;
 
 const CellWrapper = styled.div<CellWrapperProps>`
   min-width: 140px;
-  min-height: 80px;
+  min-height: ${(props) => (props.isHeader ? 24 : 80)}px;
   background-color: ${(props) => (props.isWeekend ? "#27282A" : "#1e1f21")};
-  color: #fff;
+  color: #dddddd;
 `;
 
-const RowInCell = styled.div<RowProps>`
+const RowInCell = styled.div<RowInCellProps>`
   display: flex;
   justify-content: ${(props) => props.justifyContent || "flex-start"};
+  ${(props) =>
+    props.paddingRight &&
+    css`
+      padding-right: ${props.paddingRight * 8}px;
+    `}
 `;
 
 const DayWrapper = styled.div`
@@ -59,21 +74,34 @@ const CalendarGrid: FC<CalendarGripProps> = ({ startDay }) => {
   const isWeekend = (day: Moment) => day.day() === 6 || day.day() === 0;
   const isCurrentDay = (day: Moment) => moment().isSame(day, "day");
   return (
-    <GridWrapper>
-      {daysMap.map((dayItem, index) => (
-        <CellWrapper key={dayItem.unix()} isWeekend={isWeekend(dayItem)}>
-          <RowInCell justifyContent={"flex-end"}>
-            <DayWrapper>
-              {isCurrentDay(dayItem) ? (
-                <CurrentDay>{dayItem.format("D")}</CurrentDay>
-              ) : (
-                dayItem.format("D")
-              )}
-            </DayWrapper>
+    <>
+      <GridWrapper isHeader={true}>
+        {[...Array(7)].map((_, index) => (
+          <RowInCell justifyContent={"flex-end"} paddingRight={1}>
+            <CellWrapper isHeader={true}>
+              {moment()
+                .day(index + 1)
+                .format("ddd")}
+            </CellWrapper>
           </RowInCell>
-        </CellWrapper>
-      ))}
-    </GridWrapper>
+        ))}
+      </GridWrapper>
+      <GridWrapper>
+        {daysMap.map((dayItem, index) => (
+          <CellWrapper key={dayItem.unix()} isWeekend={isWeekend(dayItem)}>
+            <RowInCell justifyContent={"flex-end"}>
+              <DayWrapper>
+                {isCurrentDay(dayItem) ? (
+                  <CurrentDay>{dayItem.format("D")}</CurrentDay>
+                ) : (
+                  dayItem.format("D")
+                )}
+              </DayWrapper>
+            </RowInCell>
+          </CellWrapper>
+        ))}
+      </GridWrapper>
+    </>
   );
 };
 export { CalendarGrid };
