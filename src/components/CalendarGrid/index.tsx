@@ -9,11 +9,13 @@ interface RowInCellProps {
 
 interface CalendarGripProps {
   startDay: Moment;
+  currentTime: Moment;
 }
 
 interface CellWrapperProps {
   isWeekend?: boolean;
   isHeader?: boolean;
+  isSelectedMonth?: boolean;
 }
 
 interface GridWrapperProps {
@@ -36,7 +38,7 @@ const CellWrapper = styled.div<CellWrapperProps>`
   min-width: 140px;
   min-height: ${(props) => (props.isHeader ? 24 : 80)}px;
   background-color: ${(props) => (props.isWeekend ? "#27282A" : "#1e1f21")};
-  color: #dddddd;
+  color: ${(props) => (props.isSelectedMonth ? "#DDDDDD" : "#555759")};
 `;
 
 const RowInCell = styled.div<RowInCellProps>`
@@ -67,28 +69,35 @@ const CurrentDay = styled("div")`
   justify-content: center;
 `;
 
-const CalendarGrid: FC<CalendarGripProps> = ({ startDay }) => {
+const CalendarGrid: FC<CalendarGripProps> = ({ startDay, currentTime }) => {
   const totalDays = 42;
   const day = startDay.clone().subtract(1, "day");
+  const weekendMap = [...Array(7)];
   const daysMap = [...Array(totalDays)].map(() => day.add(1, "day").clone());
   const isWeekend = (day: Moment) => day.day() === 6 || day.day() === 0;
   const isCurrentDay = (day: Moment) => moment().isSame(day, "day");
+  const isSelectedMonth = (day: Moment): boolean =>
+    currentTime.isSame(day, "month");
   return (
     <>
       <GridWrapper isHeader={true}>
-        {[...Array(7)].map((_, index) => (
-          <RowInCell justifyContent={"flex-end"} paddingRight={1}>
-            <CellWrapper isHeader={true}>
+        {weekendMap.map((_, index) => (
+          <CellWrapper isHeader={true} isSelectedMonth>
+            <RowInCell justifyContent={"flex-end"} paddingRight={1}>
               {moment()
                 .day(index + 1)
                 .format("ddd")}
-            </CellWrapper>
-          </RowInCell>
+            </RowInCell>
+          </CellWrapper>
         ))}
       </GridWrapper>
       <GridWrapper>
         {daysMap.map((dayItem, index) => (
-          <CellWrapper key={dayItem.unix()} isWeekend={isWeekend(dayItem)}>
+          <CellWrapper
+            key={dayItem.unix()}
+            isWeekend={isWeekend(dayItem)}
+            isSelectedMonth={isSelectedMonth(dayItem)}
+          >
             <RowInCell justifyContent={"flex-end"}>
               <DayWrapper>
                 {isCurrentDay(dayItem) ? (

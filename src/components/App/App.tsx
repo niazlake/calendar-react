@@ -35,7 +35,7 @@ function App() {
         todayMonthSelect={todayMonthSelect}
         nextMonthSelect={nextMonthSelect}
       />
-      <CalendarGrid startDay={startDay} />
+      <CalendarGrid startDay={startDay} currentTime={today} />
     </ShadowWrapper>
   );
 }
