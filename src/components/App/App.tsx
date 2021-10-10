@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "../App/App.css";
 import moment from "moment";
 import { CalendarGrid } from "../CalendarGrid";
@@ -16,6 +16,17 @@ const ShadowWrapper = styled("div")`
   box-shadow: 0 0 0 1px #1a1a1a, 0 8px 20px 6px #888;
 `;
 
+const url = "http://localhost:5000";
+const totalDays = 42;
+
+const getEventsWithPeriods = async (
+  startDayQuery: string,
+  endDayQuery: string
+): Promise<any> =>
+  fetch(`${url}/events?date_gte=${startDayQuery}&date_lte=${endDayQuery}`).then(
+    (res) => res.json()
+  );
+
 function App() {
   moment.updateLocale("en", { week: { dow: 1 } });
   const [today, setToday] = useState(moment());
@@ -25,6 +36,17 @@ function App() {
   const todayMonthSelect = () => setToday(moment());
   const nextMonthSelect = () =>
     setToday((prev) => prev.clone().add(1, "month"));
+  const startDayQuery = startDay.clone().format("X");
+  const endDayQuery = startDay.clone().add(totalDays, "days").format("X");
+
+  const [events, setEvents] = useState([]);
+
+  useEffect(() => {
+    const events = getEventsWithPeriods(startDayQuery, endDayQuery);
+    events.then((value) => {
+      setEvents(value);
+    });
+  }, [today]);
 
   return (
     <ShadowWrapper>
@@ -35,7 +57,12 @@ function App() {
         todayMonthSelect={todayMonthSelect}
         nextMonthSelect={nextMonthSelect}
       />
-      <CalendarGrid startDay={startDay} currentTime={today} />
+      <CalendarGrid
+        startDay={startDay}
+        currentTime={today}
+        totalDays={totalDays}
+        events={events}
+      />
     </ShadowWrapper>
   );
 }

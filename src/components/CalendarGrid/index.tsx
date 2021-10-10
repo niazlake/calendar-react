@@ -10,6 +10,8 @@ interface RowInCellProps {
 interface CalendarGripProps {
   startDay: Moment;
   currentTime: Moment;
+  totalDays: number;
+  events: any[];
 }
 
 interface CellWrapperProps {
@@ -21,6 +23,33 @@ interface CellWrapperProps {
 interface GridWrapperProps {
   isHeader?: boolean;
 }
+
+const ShowDayWrapper = styled("div")`
+  display: flex;
+  justify-content: flex-end;
+`;
+
+const EventListWrapper = styled("ul")`
+  margin: unset;
+  list-style-position: inside;
+  padding-left: 4px;
+`;
+
+const EventItemWrapper = styled("button")`
+  position: relative;
+  left: -14px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  width: 114px;
+  border: unset;
+  background: unset;
+  color: #dddddd;
+  cursor: pointer;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+`;
 
 const GridWrapper = styled.div<GridWrapperProps>`
   display: grid;
@@ -43,6 +72,7 @@ const CellWrapper = styled.div<CellWrapperProps>`
 
 const RowInCell = styled.div<RowInCellProps>`
   display: flex;
+  flex-direction: column;
   justify-content: ${(props) => props.justifyContent || "flex-start"};
   ${(props) =>
     props.paddingRight &&
@@ -69,8 +99,12 @@ const CurrentDay = styled("div")`
   justify-content: center;
 `;
 
-const CalendarGrid: FC<CalendarGripProps> = ({ startDay, currentTime }) => {
-  const totalDays = 42;
+const CalendarGrid: FC<CalendarGripProps> = ({
+  startDay,
+  currentTime,
+  totalDays,
+  events,
+}) => {
   const day = startDay.clone().subtract(1, "day");
   const weekendMap = [...Array(7)];
   const daysMap = [...Array(totalDays)].map(() => day.add(1, "day").clone());
@@ -99,13 +133,28 @@ const CalendarGrid: FC<CalendarGripProps> = ({ startDay, currentTime }) => {
             isSelectedMonth={isSelectedMonth(dayItem)}
           >
             <RowInCell justifyContent={"flex-end"}>
-              <DayWrapper>
-                {isCurrentDay(dayItem) ? (
-                  <CurrentDay>{dayItem.format("D")}</CurrentDay>
-                ) : (
-                  dayItem.format("D")
-                )}
-              </DayWrapper>
+              <ShowDayWrapper>
+                <DayWrapper>
+                  {isCurrentDay(dayItem) ? (
+                      <CurrentDay>{dayItem.format("D")}</CurrentDay>
+                  ) : (
+                      dayItem.format("D")
+                  )}
+                </DayWrapper>
+              </ShowDayWrapper>
+              <EventListWrapper>
+                {events
+                  .filter(
+                    (event) =>
+                      event.date >= dayItem.format("X") &&
+                      event.date <= dayItem.clone().endOf("day").format("X")
+                  )
+                  .map((event) => (
+                    <li key={event.id}>
+                      <EventItemWrapper>{event.title}</EventItemWrapper>
+                    </li>
+                  ))}
+              </EventListWrapper>
             </RowInCell>
           </CellWrapper>
         ))}
